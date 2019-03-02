@@ -20,33 +20,89 @@ define([
     'use strict';
 
     var params = {
-      init_delay: 500
+      init_delay: 500,
+      update_delay: 1000,
     };
+
+
+    /**
+    * Update cell metadata with folding info,
+    * so folding state can be restored after reloading notebook
+    *
+    * @param cm CodeMirror instance
+    */
+    function updateMetadata (cm, event) {
+      // User can click on gutter of unselected cells,
+      // so make sure we store metadata in the correct cell
+      let cell = null;
+      let selected_cell = Jupyter.notebook.get_selected_cell();
+
+      if (selected_cell.code_mirror !== cm) {
+        let cells = Jupyter.notebook.get_cells();
+
+        for (let c of cells) {
+          if (c.code_mirror === cm ) { cell = c; break; }
+        }
+      } else {
+        cell = selected_cell;
+      }
+
+      // breakpoints
+      let breakpoints = $(cell.element).find('.CodeMirror-line').map( (idx, e) => {
+        if ($(e).hasClass('has-breakpoint')) return {
+          'index': idx,
+          'element': e
+        };
+      });
+
+      cell.metadata.breakpoints = breakpoints;
+    }
 
     /**
     * Activate breakpoints in CodeMirror options, don't overwrite other settings
     *
     * @param cm codemirror instance
     */
-    function activate_cm_breakpoints (cm) {
+    function activate_cm_breakpoints (cell) {
+      let cm = cell.code_mirror;
       let gutters = cm.getOption('gutters').slice();
 
-      if ( $.inArray("CodeMirror-breakpoints", gutters)) {
+      if ( $.inArray("CodeMirror-breakpoints", gutters) < 0) {
         gutters.push('CodeMirror-breakpoints');
 
         cm.setOption('gutters', gutters);
-        cm.on('gutterClick', (self, ln) => {
+        cm.on('gutterClick', (self, ln, gutter, event) => {
           let info = self.lineInfo(ln);
 
-          // breakpoint marker
-          let marker = document.createElement("div");
-          marker.innerHTML = "●";
-          marker.setAttribute('class', 'breakpoint');
-          marker.setAttribute('data-cm-cell-line', ln);
+          if (info.gutterMarkers) {
 
-          self.setGutterMarker(
-            ln, "CodeMirror-breakpoints", info.gutterMarkers ? null : marker);
-          });
+            // remove has-breakpoint class to the line wrapper
+            self.removeLineClass(ln, 'text', 'has-breakpoint');
+            // toggle gutter marker
+            self.setGutterMarker(ln, "CodeMirror-breakpoints", null);
+
+            // skip folds
+            if (info.gutterMarkers.hasOwnProperty('CodeMirror-foldgutter')) {
+              console.warn(
+                "Setting breakpoint on foldable line is not allowed."
+              );
+            }
+
+          } else {
+            // breakpoint marker
+            let marker = document.createElement("div");
+            marker.innerHTML = "●";
+            marker.setAttribute('class', 'breakpoint');
+
+            // add has-breakpoint class to the line wrapper
+            self.addLineClass(ln, 'text', 'has-breakpoint');
+            // toggle gutter marker
+            self.setGutterMarker(ln, "CodeMirror-breakpoints", marker);
+          }
+
+          // update after delay
+          setTimeout(() => updateMetadata(self, event), params.update_delay);
+        });
       }
     }
 
@@ -60,7 +116,9 @@ define([
     var createCell = function (event, nbcell) {
       let cell = nbcell.cell;
       if ((cell instanceof codecell.CodeCell)) {
-        activate_cm_breakpoints(cell.code_mirror);
+        activate_cm_breakpoints(cell);
+
+        cell.code_mirror.on('delete', updateMetadata);
       }
     };
 
@@ -70,9 +128,12 @@ define([
     */
     var initExistingCells = function () {
       let cells = Jupyter.notebook.get_cells();
+
       cells.forEach( cell => {
         if ((cell instanceof codecell.CodeCell)) {
-          activate_cm_breakpoints(cell.code_mirror);
+          activate_cm_breakpoints(cell);
+
+          cell.code_mirror.on('delete', updateMetadata);
         }
       });
 
@@ -86,7 +147,8 @@ define([
     *
     */
     var load_css = function (name) {
-      var link = document.createElement("link");
+      let link = document.createElement("link");
+
       link.type = "text/css";
       link.rel = "stylesheet";
       link.href = requirejs.toUrl(name, 'css');
@@ -95,49 +157,34 @@ define([
     };
 
     /**
-     * Initialize extension
-     *
-     */
+    * Initialize extension
+    *
+    */
     var load_extension = function () {
-        // first, check which view we're in, in order to decide whether to load
-        var conf_sect;
-        if (Jupyter.notebook) {
-            // we're in notebook view
-            conf_sect = Jupyter.notebook.config;
-        }
-        else if (Jupyter.editor) {
-            // we're in file-editor view
-            conf_sect = new configmod.ConfigSection('notebook', {base_url: Jupyter.editor.base_url});
-            conf_sect.load();
-        }
-        else {
-            // we're some other view like dashboard, terminal, etc, so bail now
-            return;
-        }
+      // first, check which view we're in, in order to decide whether to load
+      let conf_sect;
+      if (Jupyter.notebook) {
+        // we're in notebook view
+        conf_sect = Jupyter.notebook.config;
+      } else {
+        // we're some other view like dashboard, terminal, etc, so bail now
+        return;
+      }
 
-        /* change default breakpoint gutter width */
-        load_css( './main.css');
+      /* change default breakpoint gutter width */
+      load_css( './main.css');
 
-        if (Jupyter.notebook) {
-            if (Jupyter.notebook._fully_loaded) {
-              setTimeout(function () {
-                console.log('Breakpoints: Wait for', params.init_delay, 'ms');
-                initExistingCells();
-              }, params.init_delay);
-            }
-            else {
-              events.one('notebook_loaded.Notebook', initExistingCells);
-            }
-        }
-        else {
-            activate_cm_breakpoints(Jupyter.editor.codemirror);
-            setTimeout(function () {
-                console.log('Breakpoints: Wait for', params.init_delay, 'ms');
-                Jupyter.editor.codemirror.refresh();
-            }, params.init_delay);
-        }
+      if (Jupyter.notebook._fully_loaded) {
+        setTimeout(function () {
+          console.log('Breakpoints: Wait for', params.init_delay, 'ms');
+          initExistingCells();
+        }, params.init_delay);
+      }
+      else {
+        events.one('notebook_loaded.Notebook', initExistingCells);
+      }
     };
 
     return {load_ipython_extension : load_extension};
 
-});
+  });

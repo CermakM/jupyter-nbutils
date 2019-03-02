@@ -36,6 +36,8 @@ def suppress_warnings(line: str = None, cell: str = None, local_ns = None):
 
     NOTE: The output is still present in the DOM, but not visible.
     """
+    _ = local_ns  # ignore
+
     shell = get_ipython()
     shell.ex(cell)
     
@@ -58,7 +60,10 @@ def suppress_warnings(line: str = None, cell: str = None, local_ns = None):
         ret = namespace[last_command]
     except KeyError:
         # evaluate and display the result
-        ret = shell.ev(last_command)
+        try:
+            ret = shell.ev(last_command)
+        except SyntaxError:  # if not expressions
+            ret = None
     
     return ret
 

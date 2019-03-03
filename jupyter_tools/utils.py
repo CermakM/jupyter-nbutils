@@ -21,28 +21,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Interactive debugging and breakpoint setting."""
+"""Common utilities for IPython operations."""
 
-import re
+import json
+import sys
 
-from typing import List
-
-from IPython.core.magic import register_cell_magic
-
-
-@register_cell_magic
-def debug(line: str = None, cell: str = None, local_ns = None):
-    """Toggle debugging mode for the current cell."""
-    is_on = re.match(r"\b(on|true)\b", line.strip().lower(), re.IGNORECASE)
-
-    breakpoints = _get_breakpoints()
+from . import config
 
 
-def _get_breakpoints() -> List[int]:
-    """Retrieve breakpoints from the current cell.
+_IPYTHON_VARS = {'In', 'Out'}
 
-    :returns: list of line numbers containing breakpoints
-    """
-    breakpoints = []
 
-    return breakpoints
+def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=False):
+    """Filter namespace."""
+    bindings = bindings or dict()
+    blacklist = blacklist or dict()
+
+    namespace = dict()
+
+    for k, v in user_ns.items():
+
+        try:
+            json.dumps(v)
+        except Exception as exc:
+            if config.defaults.warnings:
+                print("[WARNING] Serialization of object `{obj}` failed. Skipping.".format(obj=k),
+                      exc, file=sys.stderr)
+            continue
+
+        if k in blacklist:
+            continue
+
+        # pop ipython vars (if they are not overridden by user)
+        if k in _IPYTHON_VARS and k not in bindings:
+            continue
+
+        if k.startswith('_') and not allow_private:
+            if k in bindings:
+                namespace[k] = v
+            else:
+                continue
+
+        namespace[k] = v
+
+    return namespace

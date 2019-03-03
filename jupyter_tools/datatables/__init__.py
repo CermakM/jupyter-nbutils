@@ -39,7 +39,7 @@ def init_datatables_mode():
     """Initialize DataTable mode for pandas DataFrame represenation."""
     # configure path to the datatables library using requireJS
     # that way the library will become globally available
-    require('datatables', 'https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min')
+    require('DT', 'https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min')
 
     # link stylesheets
     link_css('https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css')
@@ -54,20 +54,22 @@ def init_datatables_mode():
 
         # create table DOM
         script = (
-            f'$(element).html(`{self.to_html(index=False, classes=classes)}`);\n'
-        )
-
-        # execute jQuery to turn table into DataTable
-        script += """
-            require(['datatables'], function(DT) {
-                $(document).ready( () => {
+            f"const table = $.parseHTML(`{self.to_html(index=False, classes=classes)}`);"
+            """
+            require(['DT'], function(DT) {
+                $(table).ready( () => {
                     // Turn existing table into datatable
-                    $(element).find('table.dataframe').DataTable({
-                        scrollX: true
+                    let ret = $(table).DataTable({
+                        scrollX: true,
+                        pagingType: 'full_numbers'
                     });
+                    console.log(ret);
                 })
             });
-        """
+            
+            $(element).append(table);
+            """
+        )
 
         return script
 

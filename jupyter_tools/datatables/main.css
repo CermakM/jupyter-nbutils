@@ -12,6 +12,9 @@ table.dataTable {
   border-spacing: 0;
 }
 
+table.dataTable th, td { white-space: nowrap !important; }
+
 .table-bordered {
     border: 1px solid #ddd !important;
 }
+

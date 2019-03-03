@@ -23,11 +23,16 @@
 
 """Jupyter interactive pandas DataFrame representation."""
 
-
 import pandas as pd
+
+from pathlib import Path
 
 from jupyter_require import require
 from jupyter_require import link_css
+from jupyter_require import load_css
+
+
+_HERE = Path(__file__).parent
 
 
 def init_datatables_mode():
@@ -36,8 +41,11 @@ def init_datatables_mode():
     # that way the library will become globally available
     require('datatables', 'https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min')
 
-    # link stylesheet
+    # link stylesheets
     link_css('https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css')
+    # load custom style
+    load_css(
+        Path(_HERE, './main.css').read_text(encoding='utf-8'), {'id': 'datatables-stylesheet'})
 
     def _repr_datatable_(self):
         """Return DataTable representation of pandas DataFrame."""

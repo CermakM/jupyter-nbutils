@@ -1,0 +1,21 @@
+/* main.css */
+
+/*
+ * Table styles
+ */
+
+table.dataTable {
+  width: 100%;
+  margin: 0 auto;
+  clear: both;
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+.table {
+    margin-bottom: 18px !important;
+}
+
+.table-bordered {
+    border: 1px solid #ddd !important;
+}

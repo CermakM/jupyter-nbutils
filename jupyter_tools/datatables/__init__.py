@@ -59,11 +59,10 @@ def init_datatables_mode():
             require(['DT'], function(DT) {
                 $(table).ready( () => {
                     // Turn existing table into datatable
-                    let ret = $(table).DataTable({
+                    $(table).DataTable({
                         scrollX: true,
                         pagingType: 'full_numbers'
                     });
-                    console.log(ret);
                 })
             });
             

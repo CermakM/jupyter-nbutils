@@ -62,7 +62,9 @@ def init_datatables_mode():
             require(['datatables'], function(DT) {
                 $(document).ready( () => {
                     // Turn existing table into datatable
-                    $(element).find('table.dataframe').DataTable();
+                    $(element).find('table.dataframe').DataTable({
+                        scrollX: true
+                    });
                 })
             });
         """

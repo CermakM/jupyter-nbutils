@@ -67,6 +67,7 @@ def suppress_warnings(line: str = None, cell: str = None, local_ns = None):
     
     return ret
 
+
 def display_suppressed_warnings():
     """Display all stderr output cells suppresed by `suppress_warnings`."""
     return execute_js("""

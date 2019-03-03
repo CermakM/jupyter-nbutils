@@ -2,10 +2,22 @@
  * Jupyter debugger extension
  *
  * @module
- * @author Marek Cermak <macermak@redhat.com>
+ * @summary     Debugger
+ * @description Interactive debugging in Jupyter notebook.
+ * @version     0.1.0
+ * @file        debugger/main.js
+ * @author      Marek Cermak
+ * @contact     macermak@redhat.com
+ * @copyright   Copyright 2019 Marek Cermak <macermak@redhat.com>
  *
- * This module adds breakpoint functionality to CodeMirror gutters
- * and enables usege of enhanced cell debugging.
+ * This source file is free software, available under the following license:
+ *   MIT license
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: https://github.com/CermakM/jupyter-tools
  */
 
 define([
@@ -19,7 +31,7 @@ define([
 ], function (Jupyter, $, requirejs, events, configmod, codecell, CodeMirror) {
     'use strict';
 
-    var params = {
+    const params = {
       init_delay: 500,
       update_delay: 1000,
     };
@@ -48,20 +60,20 @@ define([
       }
 
       // breakpoints
-      let breakpoints = $(cell.element).find('.CodeMirror-line').map( (idx, e) => {
-        if ($(e).hasClass('has-breakpoint')) return {
-          'index': idx,
-          'element': e
-        };
-      });
-
-      cell.metadata.breakpoints = breakpoints;
+      cell.metadata.breakpoints  = $(cell.element)
+          .find('.CodeMirror-line')
+          .map( (idx, e) => {
+              if ($(e).hasClass('has-breakpoint')) return {
+                  'index': idx,
+                  'element': e
+              };
+          });
     }
 
     /**
     * Activate breakpoints in CodeMirror options, don't overwrite other settings
     *
-    * @param cm codemirror instance
+    * @param cell CodeCell instance
     */
     function activate_cm_breakpoints (cell) {
       let cm = cell.code_mirror;

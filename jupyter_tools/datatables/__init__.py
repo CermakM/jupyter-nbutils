@@ -32,6 +32,9 @@ from jupyter_require import link_css
 from jupyter_require import load_css
 
 
+__version__ = '0.1.0-dev'
+
+
 _HERE = Path(__file__).parent
 
 

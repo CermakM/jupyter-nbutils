@@ -23,48 +23,56 @@
 
 """Suppress and manage warnings in Jupyter notebook on demand."""
 
+import re
 
 from IPython.core.getipython import get_ipython
 from IPython.core.magic import register_cell_magic
 
-from jupyter_d3.core import execute_js
+from jupyter_require.core import execute_js
 
 
 @register_cell_magic
-def suppress_warnings(line: str = None, cell: str = None, local_ns = None):
+def suppress_warnings(line: str = None, cell: str = None):
     """Suppress all stderr output produced by function call.
 
     NOTE: The output is still present in the DOM, but not visible.
     """
-    _ = local_ns  # ignore
-
+    _ = line  # ignore
     shell = get_ipython()
-    shell.ex(cell)
-    
+
+    code = cell
+    last_command = None
+
+    code_lines = cell.splitlines()
+    if not re.search(r"^(\s)+", code_lines[-1]):
+        # is not part of a block, evaluate separately
+        last_command = code_lines.pop()
+        code = '\n'.join(code_lines)
+
+    # evaluate the whole script except the last line
+    shell.ex(code)
+
+    try:
+        # try to evaluate and return last command
+        ret = shell.ev(last_command)
+    except SyntaxError:
+        # if this one throws too, then its users error
+        ret = shell.ex(last_command)
+
     # suppress warnings produced by the execution
     execute_js("""
-        $(element)
-            .parents('.output')
-            .find('.output_stderr')
-            .css('display', 'none');
+        let stderr = $(element).parents('.output').find('.output_stderr');
+        
+        if (stderr.length > 0) {
+            stderr.css('display', 'none');
+            
+            // also check if scrolling has been set to erase the hight attribute
+            try {
+                stderr.parents('.output.output_scroll').css('height', 'inherit');
+            } catch (err) {}
+        }
     """)
 
-    # evaluate the last command in the current namespace
-    # to display the output
-    namespace = shell.user_ns
-    namespace.update(shell.user_global_ns)
-    
-    last_command = cell.splitlines()[-1]
-    try:
-        # already evaluated expression, display statement
-        ret = namespace[last_command]
-    except KeyError:
-        # evaluate and display the result
-        try:
-            ret = shell.ev(last_command)
-        except SyntaxError:  # if not expressions
-            ret = None
-    
     return ret
 
 

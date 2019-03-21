@@ -1,16 +1,21 @@
 """Tools and utilities to improve your experience with Jupyter Notebooks."""
 
-from pathlib import Path
 
-from jupyter_require import load_css
+from .datatables import init_datatables_mode
+from .config import defaults
+
+__all__ = [
+    'init_datatables_mode', 'init_notebook_mode',
+    'load_ipython_extension'
+]
 
 
-_HERE = Path(__file__).parent
+def init_notebook_mode(opts: dict = None):
+    """Initialize default tools."""
+    opts: dict = opts or defaults
 
-
-def set_style():
-    """Set default jupyter-tools stylesheets."""
-    load_css(Path(_HERE, 'assets/main.css'))
+    # initialize tools
+    init_datatables_mode(opts.pop('datatables', {}))
 
 
 def load_ipython_extension(ipython):

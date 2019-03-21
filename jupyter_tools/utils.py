@@ -32,19 +32,22 @@ from . import config
 _IPYTHON_VARS = {'In', 'Out'}
 
 
-def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=False):
+def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=False, options: dict = None):
     """Filter namespace."""
     bindings = bindings or dict()
     blacklist = blacklist or dict()
 
     namespace = dict()
 
+    opts = config.defaults._asdict()
+    opts.update(options or {})
+
     for k, v in user_ns.items():
 
         try:
             json.dumps(v)
         except Exception as exc:
-            if config.defaults.warnings:
+            if opts['warnings']:
                 print("[WARNING] Serialization of object `{obj}` failed. Skipping.".format(obj=k),
                       exc, file=sys.stderr)
             continue

@@ -5,6 +5,8 @@
 
 from collections import namedtuple
 
+__all__ = ['defaults']
+
 
 _DEFAULT_CONFIG = {
     'warnings': True,

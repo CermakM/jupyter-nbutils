@@ -23,14 +23,19 @@
 
 """Jupyter interactive pandas DataFrame representation."""
 
+import json
 import pandas as pd
 
+from collections import OrderedDict
 from pathlib import Path
 
 from jupyter_require import require
 from jupyter_require import link_css
 from jupyter_require import load_css
 
+from jupyter_require.core import JSTemplate
+
+from .config import defaults
 
 __version__ = '0.1.0-dev'
 
@@ -38,14 +43,73 @@ __version__ = '0.1.0-dev'
 _HERE = Path(__file__).parent
 
 
-def init_datatables_mode():
+def init_datatables_mode(options: dict = None):
     """Initialize DataTable mode for pandas DataFrame represenation."""
     # configure path to the datatables library using requireJS
     # that way the library will become globally available
-    require('DT', 'https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min')
+    # simple:
+    # require('datatables', 'https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min')
+    # or for extensions and plugins uncomment following:
+    require.config(
+        libs=OrderedDict({
+            'pdfmake': 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min',
+            'vfsfonts': 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts',
+            'datatables.net': 'https://cdn.datatables.net/v/dt/'
+                              'dt-1.10.18/'  # DataTables
+                              # 'af-2.3.2/'  # AutoFill
+                              # 'b-1.5.4/'   # Buttons
+                              # 'b-colvis-1.5.4/' # Buttons - Column Visibility
+                              # 'b-flash-1.5.4/'  # Buttons - Flash
+                              # 'b-html5-1.5.4/'  # Buttons - HTML5
+                              # 'b-print-1.5.4/'  # Buttons - Print View
+                              # 'cr-1.5.0/'  # ColReorder
+                              # 'fc-3.2.5/'  # FixedColumns
+                              # 'fh-3.1.4/'  # FixedHeader
+                              # 'kt-2.5.0/'  # KeyTable
+                              # 'r-2.2.2/'   # Responsive
+                              # 'rg-1.1.0/'  # RowGroup
+                              # 'rr-1.2.4/'  # RowReorder
+                              'sc-1.5.0/'  # Scroll
+                              'sl-1.2.6/'  # Select
+                              'datatables.min',
+        }),
+        shim=OrderedDict({
+            'datatables.net': {
+                'exports': '$.fn.dataTable'
+            },
+            'pdfmake': {
+                'deps': ["datatables.net"]
+            },
+            'vfsfonts': {
+                'deps': ["datatables.net", "pdfmake"]
+            },
+        })
+    )
+
+    opts = defaults.options
+    opts.update(options or {})
 
     # link stylesheets
-    link_css('https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css')
+    # link_css('https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css')  # simple
+    link_css('https://cdn.datatables.net/v/dt/'
+             'dt-1.10.18/'  # DataTables
+             # 'af-2.3.2/'  # AutoFill
+             # 'b-1.5.4/'   # Buttons
+             # 'b-colvis-1.5.4/' # Buttons - Column Visibility
+             # 'b-flash-1.5.4/'  # Buttons - Flash
+             # 'b-html5-1.5.4/'  # Buttons - HTML5
+             # 'b-print-1.5.4/'  # Buttons - Print View
+             # 'cr-1.5.0/'  # ColReorder
+             # 'fc-3.2.5/'  # FixedColumns
+             # 'fh-3.1.4/'  # FixedHeader
+             # 'kt-2.5.0/'  # KeyTable
+             # 'r-2.2.2/'   # Responsive
+             # 'rg-1.1.0/'  # RowGroup
+             # 'rr-1.2.4/'  # RowReorder
+             'sc-1.5.0/'  # Scroll
+             'sl-1.2.6/'  # Select
+             'datatables.min.css')
+
     # load custom style
     load_css(
         Path(_HERE, './main.css').read_text(encoding='utf-8'), {'id': 'datatables-stylesheet'})
@@ -57,22 +121,19 @@ def init_datatables_mode():
 
         # create table DOM
         script = (
-            f"const table = $.parseHTML(`{self.to_html(index=False, classes=classes)}`);"
+            f"const table = $.parseHTML(`{self.to_html(classes=classes)}`);"
             """
-            require(['DT'], function(DT) {
-                $(table).ready( () => {
-                    // Turn existing table into datatable
-                    $(table).DataTable({
-                        scrollX: true,
-                        pagingType: 'full_numbers'
-                    });
-                })
-            });
+            $(table).ready( () => {
+                // Turn existing table into datatable
+                $(table).DataTable($$opts);
+            })
             
             $(element).append(table);
             """
         )
 
-        return script
+        template = JSTemplate(script)
+
+        return template.safe_substitute(opts=json.dumps(opts))
 
     pd.DataFrame._repr_javascript_ = _repr_datatable_

@@ -5,7 +5,6 @@
 
 
 table.dataTable {
-  width: 100%;
   margin: 0 auto;
   clear: both;
   border-collapse: separate !important;
@@ -17,13 +16,16 @@ table.dataTable th, td {
   padding: 11px 20px;
 
   white-space: nowrap !important;
-
-  border-bottom: none !important;
 }
 
 /* overwrite pandas border */
-.table-bordered {
+.table-bordered th {
   border: 1px solid #ddd !important;
+}
+
+/* only border in th cells */
+.table-bordered td {
+  border: none !important;
 }
 
 
@@ -35,6 +37,9 @@ table.dataTable th, td {
   border-bottom: none !important;
 }
 
+.dataTables_wrapper input {
+    max-width: 970px;
+}
 
 .dataTables_wrapper input {
   display: inline-block;
@@ -54,7 +59,11 @@ table.dataTable th, td {
 
 
 .dataTables_wrapper label {
+  margin-right: 0 !important;
+  margin-bottom: 11px;
+
   box-sizing: border-box;
+
   white-space: nowrap;
 }
 

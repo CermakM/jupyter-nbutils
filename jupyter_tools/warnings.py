@@ -28,16 +28,18 @@ import re
 from IPython.core.getipython import get_ipython
 from IPython.core.magic import register_cell_magic
 
-from jupyter_require.core import execute_js
+from jupyter_require.core import execute_with_requirements
 
 
 @register_cell_magic
-def suppress_warnings(line: str = None, cell: str = None):
+def suppress_warnings(line: str = None, cell: str = None, local_ns: dict = None):
     """Suppress all stderr output produced by function call.
 
     NOTE: The output is still present in the DOM, but not visible.
     """
-    _ = line  # ignore
+    _ = line  # line
+    _ = local_ns  # ignore
+
     shell = get_ipython()
 
     code = cell
@@ -60,28 +62,26 @@ def suppress_warnings(line: str = None, cell: str = None):
         ret = shell.ex(last_command)
 
     # suppress warnings produced by the execution
-    execute_js("""
-        let stderr = $(element).parents('.output').find('.output_stderr');
-        
-        if (stderr.length > 0) {
-            stderr.css('display', 'none');
-            
-            // also check if scrolling has been set to erase the hight attribute
-            try {
-                stderr.parents('.output.output_scroll').css('height', 'inherit');
-            } catch (err) {}
-        }
-    """)
+    script = """
+        $(element)
+            .parents('.output')
+            .find('.output_stderr')
+            .css('display', 'none');
+    """
+
+    execute_with_requirements(script, required=[])
 
     return ret
 
 
 def display_suppressed_warnings():
     """Display all stderr output cells suppresed by `suppress_warnings`."""
-    return execute_js("""
-            $(element)
-                .parents('.output')
-                .find('.output_stderr')
-                .css('display', 'block');
-        """)
+    script = """
+        $(element)
+            .parents('.output')
+            .find('.output_stderr')
+            .css('display', 'block');
+    """
+
+    return execute_with_requirements(script, required=[])
 

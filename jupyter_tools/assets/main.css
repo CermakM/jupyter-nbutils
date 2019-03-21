@@ -1,0 +1,47 @@
+/* main.css
+ *
+ * Jupyter-tools default stylesheet
+ */
+
+
+input {
+    display: inline-block;
+    height: calc(2.75rem + 5px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+
+label {
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+
+select {
+    display: inline-block;
+    height: calc(2.75rem + 5px);
+    padding: 0.375rem 2.75rem 0.375rem 1.75rem;
+    line-height: 1.5;
+
+    vertical-align: middle;
+
+    background: #fff url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+    background-size: auto 11px;
+
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}

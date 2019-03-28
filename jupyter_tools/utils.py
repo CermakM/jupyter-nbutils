@@ -26,7 +26,20 @@
 import json
 import sys
 
+import logging
+import daiquiri
+
+import shlex
+import subprocess
+
+from typing import Union
+
+from IPython.core.display import display
+from IPython.core.display import Javascript
+
 from . import config
+
+logger = daiquiri.getLogger()
 
 
 _IPYTHON_VARS = {'In', 'Out'}
@@ -68,3 +81,116 @@ def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=Fal
         namespace[k] = v
 
     return namespace
+
+
+# These utilities are useful for handling jupyter-require nbextension,
+# when communication can not yet be handled by the jupyter-require itself.
+
+_NBEXTENSION = 'jupyter-require'
+
+
+def install_nbextension(extension: str,
+                        *flags,
+                        py=True,
+                        sys_prefix=True,
+                        symlink=False,
+                        overwrite=True,
+                        config: str = '',
+                        log_level: Union[int, str] = logging.INFO):
+    """Install nbextension.
+
+    :param extension: path to the extension or Python package name (if py=True)
+    :param py: bool, Whether to install from Python package (default: True)
+    :param sys_prefix: bool, Whether to use sys prefix, use this in virtual envs (default: True)
+    :param symlink: bool, Whether to create symlink to package data (default: False)
+    :param overwrite:  bool, Whether to overwrite current files (default: True)
+    :param config:  str, full path to a config file
+    :param log_level:  enum, application log level
+    :param flags: str, additional flags
+    """
+    version = subprocess.check_output(
+        args=shlex.split("jupyter nbextension --version"),
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+
+    logger.debug("Jupyter nbextension version: %s", version.strip())
+
+    install_cmd = "jupyter nbextension install"
+
+    opts = ''
+    opts += ' --py' if py else ''
+    opts += ' --sys-prefix' if sys_prefix else ''
+    opts += ' --symlink' if symlink else ''
+    opts += ' --overwrite' if overwrite else ''
+
+    args = ''
+    args += f' --config {config}' if config else ''
+    args += f' --log-level {log_level}'
+
+    flags = ' '.join(flags)
+
+    cmd = ' '.join([install_cmd, opts, args, flags, extension])
+
+    p = subprocess.Popen(
+        args=shlex.split(cmd),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+
+    logger.debug("Installing extension: %s", extension)
+
+    out, err = p.communicate(timeout=60)
+
+    logger.info(out)
+    if err:
+        logger.error(err)
+
+    logger.debug("Success.")
+
+    return p.returncode
+
+
+def enable_nbextension():
+    """Enable jupyter-require nbextension."""
+    script = f"""
+    Jupyter.notebook.config.update({{
+        'load_extensions': {{
+            '{_NBEXTENSION}': true
+        }}
+    }});
+    """
+
+    return display(Javascript(script))
+
+
+def disable_nbextension():
+    """Disable jupyter-require nbextension."""
+    script = f"""
+    Jupyter.notebook.config.update({{
+        'load_extensions': {{
+            '{_NBEXTENSION}': true
+        }}
+    }});
+    """
+
+    return display(Javascript(script))
+
+
+def load_nbextension(enable=True):
+    """Load and enable jupyter-require nbextension.
+
+    Note: The jupyter-require nbextension has to be installed first.
+    """
+    script = f"""
+    require(['base/js/utils'], (utils) => {{
+        utils.load_extensions('{_NBEXTENSION}/extension')
+    }});
+    """
+
+    if enable:
+        enable_nbextension()
+
+    return display(Javascript(script))
+

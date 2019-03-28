@@ -1,7 +1,13 @@
 """Tools and utilities to improve your experience with Jupyter Notebooks."""
 
+from .__about__ import __version__
 
 from .config import defaults
+
+from .utils import disable_nbextension
+from .utils import enable_nbextension
+from .utils import install_nbextension
+from .utils import load_nbextension
 
 __all__ = [
     'init_notebook_mode',
@@ -11,11 +17,7 @@ __all__ = [
 
 def init_notebook_mode(opts: dict = None):
     """Initialize default tools."""
-    from .datatables import init_datatables_mode
     opts: dict = opts or defaults
-
-    # initialize tools
-    init_datatables_mode(opts.pop('datatables', {}))
 
 
 def load_ipython_extension(ipython):

@@ -4,7 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-spectate = "*"
+# logging
+daiquiri = "*"
+
+# jupyter
+ipython = "*"
+ipykernel = "*"
+
+# nbextensions
+jupyter-require = "*"
 
 [dev-packages]
 

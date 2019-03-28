@@ -1,0 +1,4 @@
+graft assets
+
+include LICENSE
+include README.rst

@@ -1,0 +1,9 @@
+# logging
+daiquiri
+
+# jupyter
+ipython
+ipykernel
+
+# nbextensions
+jupyter-require

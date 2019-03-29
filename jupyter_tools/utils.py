@@ -39,7 +39,7 @@ from IPython.core.display import Javascript
 
 from . import config
 
-logger = daiquiri.getLogger()
+logger = daiquiri.getLogger(__name__)
 
 
 _IPYTHON_VARS = {'In', 'Out'}

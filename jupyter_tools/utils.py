@@ -86,8 +86,6 @@ def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=Fal
 # These utilities are useful for handling jupyter-require nbextension,
 # when communication can not yet be handled by the jupyter-require itself.
 
-_NBEXTENSION = 'jupyter-require'
-
 
 def install_nbextension(extension: str,
                         *flags,
@@ -152,12 +150,12 @@ def install_nbextension(extension: str,
     return p.returncode
 
 
-def enable_nbextension():
+def enable_nbextension(nbextension: str):
     """Enable jupyter-require nbextension."""
     script = f"""
     Jupyter.notebook.config.update({{
         'load_extensions': {{
-            '{_NBEXTENSION}': true
+            '{nbextension}': true
         }}
     }});
     """
@@ -165,12 +163,12 @@ def enable_nbextension():
     return display(Javascript(script))
 
 
-def disable_nbextension():
+def disable_nbextension(nbextension: str):
     """Disable jupyter-require nbextension."""
     script = f"""
     Jupyter.notebook.config.update({{
         'load_extensions': {{
-            '{_NBEXTENSION}': true
+            '{nbextension}': true
         }}
     }});
     """
@@ -178,19 +176,23 @@ def disable_nbextension():
     return display(Javascript(script))
 
 
-def load_nbextension(enable=True):
+def load_nbextension(nbextension, endpoint: str = 'extension', enable=True):
     """Load and enable jupyter-require nbextension.
 
-    Note: The jupyter-require nbextension has to be installed first.
+    Note a: The jupyter-require nbextension has to be installed first.
+    Note b: The extension has to be visible by notebook webserver, hence it has
+    to be placed in defined folder locations (see the official [documentation])
+
+    [documentation]: https://jupyter.readthedocs.io/en/latest/projects/jupyter-directories.html#jupyter-path
     """
     script = f"""
     require(['base/js/utils'], (utils) => {{
-        utils.load_extensions('{_NBEXTENSION}/extension')
+        utils.load_extensions('{nbextension}/{endpoint}')
     }});
     """
 
     if enable:
-        enable_nbextension()
+        enable_nbextension(nbextension)
 
     return display(Javascript(script))
 

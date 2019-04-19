@@ -70,7 +70,7 @@ def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=Fal
             continue
             
         try:
-            json.dumps(v)
+            v = json.dumps(v)
         except Exception as exc:
             # common serialization problems are np and pd arrays, prevent this issue
             if hasattr(v, 'to_json'):

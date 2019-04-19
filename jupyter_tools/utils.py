@@ -56,26 +56,31 @@ def sanitize_namespace(user_ns, bindings=None, blacklist=None, allow_private=Fal
     opts.update(options or {})
 
     for k, v in user_ns.items():
-
-        try:
-            json.dumps(v)
-        except Exception as exc:
-            if opts['warnings']:
-                print("[WARNING] Serialization of object `{obj}` failed. Skipping.".format(obj=k),
-                      exc, file=sys.stderr)
-            continue
-
-        if k in blacklist:
-            continue
-
-        # pop ipython vars (if they are not overridden by user)
-        if k in _IPYTHON_VARS and k not in bindings:
-            continue
-
         if k.startswith('_') and not allow_private:
             if k in bindings:
                 namespace[k] = v
             else:
+                continue
+
+        # pop ipython vars (if they are not overridden by user)
+        if k in _IPYTHON_VARS and k not in bindings:
+            continue
+                
+        if k in blacklist:
+            continue
+            
+        try:
+            json.dumps(v)
+        except Exception as exc:
+            # common serialization problems are np and pd arrays, prevent this issue
+            if hasattr(v, 'to_json'):
+                v = v.to_json()
+            elif hasattr(v, 'tolist'):  # numpy arrays
+                v = json.dumps(v.tolist())
+            else:
+                if opts['warnings']:
+                    print("[WARNING] Serialization of object `{obj}` failed. Skipping.".format(obj=k),
+                            exc, file=sys.stderr)
                 continue
 
         namespace[k] = v

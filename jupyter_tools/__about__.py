@@ -9,7 +9,7 @@ __title__ = "jupyter-tools"
 __summary__ = "A collection of Jupyter tools and utilities."
 __uri__ = "https://github.com/CermakM/jupyter-tools"
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __author__ = "Marek Cermak"
 __email__ = "macermak@redhat.com"

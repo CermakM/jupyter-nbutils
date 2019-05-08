@@ -9,7 +9,7 @@ __title__ = "jupyter-nbutils"
 __summary__ = "A collection of Jupyter notebook tools and utilities."
 __uri__ = "https://github.com/CermakM/jupyter-nbutils"
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 __author__ = "Marek Cermak"
 __email__ = "macermak@redhat.com"

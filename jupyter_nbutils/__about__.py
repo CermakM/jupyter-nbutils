@@ -5,9 +5,9 @@ __all__ = [
     "__email__", "__license__", "__copyright__",
 ]
 
-__title__ = "jupyter-tools"
-__summary__ = "A collection of Jupyter tools and utilities."
-__uri__ = "https://github.com/CermakM/jupyter-tools"
+__title__ = "jupyter-nbutils"
+__summary__ = "A collection of Jupyter notebook tools and utilities."
+__uri__ = "https://github.com/CermakM/jupyter-nbutils"
 
 __version__ = "0.1.2"
 

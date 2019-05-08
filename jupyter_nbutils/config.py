@@ -1,4 +1,4 @@
-# jupyter-tools
+# jupyter-nbutils
 # Copyright 2019 Marek Cermak <macermak@redhat.com>
 
 """Default configuration for Jupyter tools."""

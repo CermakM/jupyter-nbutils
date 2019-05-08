@@ -9,7 +9,7 @@ from setuptools import find_packages
 
 
 HERE = Path(__file__).parent
-NAME = 'jupyter_tools'
+NAME = 'jupyter_nbutils'
 
 ABOUT = dict()
 exec(Path(HERE, NAME, '__about__.py').read_text(), ABOUT)
